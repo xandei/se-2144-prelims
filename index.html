@@ -8,10 +8,12 @@
   </head>
   <body>
     <div class="calculator">
-      <div id="display"></div>
+      <div id="display"></div> <!-- Single display for operations and results -->
       <div class="buttons">
-        <button id="bye" class="special">bye</button>
-        <button id="hello" class="special">hello</button>
+        <button id="bye" class="bye wide-button">bye</button>
+        <button id="hello" class="hello wide-button">hello</button>
+        <button>˚˖𓍢ִ໋🌷͙֒˚</button>
+        <button id="toggle-sign" class="special">±</button>
         <button id="ac" class="special">AC</button>
         <button id="backspace" class="special">⬅</button>
         <button class="number">7</button>
@@ -27,12 +29,13 @@
         <button class="number">3</button>
         <button class="operator">-</button>
         <button class="number">0</button>
-        <button class="number">.</button>
+        <button class="number" id="decimal">.</button>
         <button id="equals">=</button>
         <button class="operator">+</button>
-        
       </div>
+      
     </div>
+    
     <script src="/src/Calculator.ts"></script>
   </body>
 </html>
