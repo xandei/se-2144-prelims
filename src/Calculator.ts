@@ -1,229 +1,205 @@
-class Calculator {
-    private display: HTMLElement; // element to show the display of the calculator
-    private currentInput: string = ''; // stores the current input from the user
-    private operator: string = ''; // stores the current operator
-    private previousInput: string = ''; // stores the previous input before the operator
-    private isOperatorPressed: boolean = false; // flag to check if an operator has been pressed
-    private isDecimalPressed: boolean = false; // flag to check if a decimal has been pressed
-    private isOff: boolean = false; // flag to check if the calculator is off
+const display = document.getElementById('display') as HTMLElement; // get the display element
+let currentInput: string = ''; // stores the current input from the user
+let operator: string = ''; // stores the current operator
+let previousInput: string = ''; // stores the previous input before the operator
+let isOperatorPressed: boolean = false; // flag to check if an operator has been pressed
+let isDecimalPressed: boolean = false; // flag to check if a decimal has been pressed
+let isOff: boolean = false; // flag to check if the calculator is off
 
-    constructor() {
-        this.display = document.getElementById('display') as HTMLElement; // get the display element
-        this.initEventListeners(); // initialize event listeners for buttons
-        this.updateDisplay(); // update the display initially
-        this.updateDisplayColor(); // set initial display color based on the state
-    }
+function initEventListeners() {
+    const numberButtons = document.querySelectorAll('.number');
+    const operatorButtons = document.querySelectorAll('.operator');
+    const equalsButton = document.getElementById('equals') as HTMLElement;
+    const clearButton = document.getElementById('ac') as HTMLElement;
+    const backspaceButton = document.getElementById('backspace') as HTMLElement;
+    const byeButton = document.getElementById('bye') as HTMLElement;
+    const helloButton = document.getElementById('hello') as HTMLElement;
+    const decimalButton = document.getElementById('decimal') as HTMLElement;
+    const toggleSignButton = document.getElementById('toggle-sign') as HTMLElement;
 
-    private initEventListeners() {
-        // get button elements from the DOM
-        const numberButtons = document.querySelectorAll('.number');
-        const operatorButtons = document.querySelectorAll('.operator');
-        const equalsButton = document.getElementById('equals') as HTMLElement;
-        const clearButton = document.getElementById('ac') as HTMLElement;
-        const backspaceButton = document.getElementById('backspace') as HTMLElement;
-        const byeButton = document.getElementById('bye') as HTMLElement;
-        const helloButton = document.getElementById('hello') as HTMLElement;
-        const decimalButton = document.getElementById('decimal') as HTMLElement;
-        const toggleSignButton = document.getElementById('toggle-sign') as HTMLElement;
+    numberButtons.forEach(button => {
+        button.addEventListener('click', () => handleNumberInput(button.textContent!));
+    });
 
-        // add event listeners for number buttons
-        numberButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.handleNumberInput(button.textContent!); // handle number input
-            });
-        });
+    operatorButtons.forEach(button => {
+        button.addEventListener('click', () => handleOperatorInput(button.textContent!));
+    });
 
-        // add event listeners for operator buttons
-        operatorButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.handleOperatorInput(button.textContent!); // handle operator input
-            });
-        });
+    equalsButton.addEventListener('click', handleEquals);
+    clearButton.addEventListener('click', handleClear);
+    backspaceButton.addEventListener('click', handleBackspace);
+    byeButton.addEventListener('click', handleBye);
+    helloButton.addEventListener('click', handleHello);
+    decimalButton.addEventListener('click', handleDecimal);
+    toggleSignButton.addEventListener('click', handleToggleSign);
+}
 
-        // add event listeners for other buttons
-        equalsButton.addEventListener('click', () => {
-            this.handleEquals(); // handle equals button click
-        });
-        clearButton.addEventListener('click', () => {
-            this.handleClear(); // handle clear button click
-        });
-        backspaceButton.addEventListener('click', () => {
-            this.handleBackspace(); // handle backspace button click
-        });
-        byeButton.addEventListener('click', () => {
-            this.handleBye(); // handle bye button click
-        });
-        helloButton.addEventListener('click', () => {
-            this.handleHello(); // handle hello button click
-        });
-        decimalButton.addEventListener('click', () => {
-            this.handleDecimal(); // handle decimal button click
-        });
-        toggleSignButton.addEventListener('click', () => {
-            this.handleToggleSign(); // handle toggle sign button click
-        });
-    }
+function handleNumberInput(value: string) {
+    if (!isOff) {
+        if (currentInput.length < 18) { // limit input length
+            isOperatorPressed = false; // reset operator flag
 
-    private handleNumberInput(value: string) {
-        if (!this.isOff) {
-            if (this.currentInput.length < 18) { // limit input length
-                this.isOperatorPressed = false; // reset operator flag when a number is pressed
-
-                // allow adding a negative number only at the start
-                if (this.currentInput === '' && value === '-') {
-                    this.currentInput = '-'; // set current input to negative
-                } else if (this.currentInput !== '-') {
-                    // append the value if it's a number and a decimal isn't already present
-                    if (value !== '.' || !this.currentInput.includes('.')) {
-                        this.currentInput += value; // concatenate current input
-                    }
+            // Allow adding a negative number only at the start
+            if (currentInput === '' && value === '-') {
+                currentInput = '-'; // set current input to negative
+            } else if (currentInput !== '-') {
+                // Append the value if it's a number and a decimal isn't already present
+                if (value !== '.' || !currentInput.includes('.')) {
+                    currentInput += value; // concatenate current input
                 }
-
-                this.updateDisplay(); // update the display with the current input
             }
+            updateDisplay(); // update the display with the current input
         }
     }
+}
 
-    private handleOperatorInput(operator: string) {
-        if (!this.isOff && !this.isOperatorPressed && this.currentInput) {
-            if (this.operator) {
-                // calculate result if there's already an operator
-                this.calculateResult();
+function handleOperatorInput(op: string) {
+    if (!isOff && !isOperatorPressed && currentInput) {
+        if (operator) {
+            calculateResult(); // calculate result if there's already an operator
+        }
+        previousInput += currentInput + ' '; // store the current input
+        currentInput = ''; // clear current input
+        operator = op; // set the operator
+        isOperatorPressed = true; // set operator pressed flag
+        updateDisplay(); // update display with current operation
+    }
+}
+
+function handleEquals() {
+    if (!isOff && previousInput && currentInput) {
+        calculateResult(); // calculate result when equals is pressed
+        updateDisplay(); // show the result on display
+    }
+}
+
+function handleClear() {
+    operator = '';
+    previousInput = '';
+    isOperatorPressed = false;
+    isOff = false;
+    currentInput = ''; // reset to empty string
+    updateDisplay(); // clear the display
+    updateDisplayColor(); // reset display color to white
+}
+
+function handleBackspace() {
+    if (!isOff) {
+        currentInput = currentInput.slice(0, -1); // remove the last character from current input
+        if (currentInput === '') {
+            currentInput = ''; // reset to empty if input is empty
+        }
+        updateDisplay(); // Update the display
+    }
+}
+
+function handleBye() {
+    display.textContent = 'Goodbye'; // show goodbye message
+    isOff = true; // set calculator state to off
+    updateDisplayColor(); // change display color to black
+    setTimeout(() => {
+        display.textContent = ''; // clear display after a delay
+    }, 1500);
+}
+
+function handleHello() {
+    if (!isOff) { // check if the calculator is on
+        const greetings = ['Hola', 'Kamusta', 'Bonjour', 'Ciao', 'Hallo'];
+        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)]; // random greeting
+        display.textContent = randomGreeting; // display greeting
+    }
+}
+
+function handleDecimal() {
+    if (!isOff) {
+        // allow a decimal point only if it hasn't been pressed yet
+        if (!isDecimalPressed) {
+            if (currentInput === '') {
+                currentInput = '0.'; // start with '0.' if current input is empty
+            } else if (!currentInput.includes('.')) {
+                currentInput += '.'; // append decimal point if it doesn't exist
             }
-            this.previousInput += this.currentInput + ' '; // store the current input
-            this.currentInput = ''; // clear current input
-            this.operator = operator; // set the operator
-            this.isOperatorPressed = true; // set operator pressed flag
-            this.updateDisplay(); // update display with current operation
+            isDecimalPressed = true; // set flag to indicate decimal has been pressed
+            updateDisplay(); // update the display
         }
     }
+}
 
-    private handleEquals() {
-        if (!this.isOff && this.previousInput && this.currentInput) {
-            this.calculateResult(); // calculate result when equals is pressed
-            this.updateDisplay(); // show the result on display
+function calculateResult() {
+    if (!isOff) {
+        let result: number;
+        const prev = parseFloat(previousInput.trim()); // parse previous input
+        const curr = parseFloat(currentInput); // parse current input
+        
+        // handle error if inputs are not valid numbers
+        if (isNaN(prev) || isNaN(curr)) {
+            currentInput = 'Error'; // show error message
+            previousInput = ''; // clear previous input
+            return;
         }
-    }
 
-    private handleClear() {
-        // reset all variables to clear calculator state
-        this.operator = '';
-        this.previousInput = '';
-        this.isOperatorPressed = false;
-        this.isOff = false;
-        this.currentInput = '';
-        this.updateDisplay(); // clear the display
-        this.updateDisplayColor(); // reset display color to white
-    }
-
-    private handleBackspace() {
-        if (!this.isOff) {
-            this.currentInput = this.currentInput.slice(0, -1); // remove the last character from current input
-            this.updateDisplay(); // Update the display
+        // perform calculation based on the operator
+        switch (operator) {
+            case '+':
+                result = prev + curr; // addition
+                break;
+            case '-':
+                result = prev - curr; // subtraction
+                break;
+            case '*':
+                result = prev * curr; // multiplication
+                break;
+            case '/':
+                result = curr !== 0 ? prev / curr : 0; // handle division by zero
+                break;
+            default:
+                result = 0; // default case
         }
+
+        currentInput = result.toString(); // convert result to string
+        previousInput = ''; // reset previous input after calculation
+        operator = ''; // reset operator
+        isOperatorPressed = false; // reset operator pressed flag
+        isDecimalPressed = false; // reset decimal flag
+        updateDisplay(); // show result
     }
+}
 
-    private handleBye() {
-        this.display.textContent = 'Goodbye'; // show goodbye message
-        this.isOff = true; // set calculator state to off
-        this.updateDisplayColor(); // change display color to black
-        setTimeout(() => {
-            this.display.textContent = ''; // clear display after a delay
-        }, 1500);
-    }
-
-    private handleHello() {
-        if (!this.isOff) { // check if the calculator is on
-            const greetings = ['Hola', 'Kamusta', 'Bonjour', 'Ciao', 'Hallo'];
-            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)]; // random greeting
-            this.display.textContent = randomGreeting; // display greeting
-        }
-    }
-
-    private handleDecimal() {
-        if (!this.isOff) {
-            // allow a decimal point only if it hasn't been pressed yet
-            if (!this.isDecimalPressed) {
-                // check if currentInput is empty
-                if (this.currentInput === '') {
-                    this.currentInput = '0.'; // start with '0.' if current input is empty
-                } else if (!this.currentInput.includes('.')) {
-                    this.currentInput += '.'; // append decimal point if it doesn't exist
-                }
-                this.isDecimalPressed = true; // set flag to indicate decimal has been pressed
-                this.updateDisplay(); // update the display
-            }
-        }
-    }
-
-
-    private calculateResult() {
-        if (!this.isOff) {
-            let result: number;
-            const prev = parseFloat(this.previousInput.trim()); // parse previous input
-            const curr = parseFloat(this.currentInput); // parse current input
-            
-            // handle error if inputs are not valid numbers
-            if (isNaN(prev) || isNaN(curr)) {
-                this.currentInput = 'Error'; // show error message
-                this.previousInput = ''; // clear previous input
-                return;
-            }
-
-            // perform calculation based on the operator
-            switch (this.operator) {
-                case '+':
-                    result = prev + curr; // addition
-                    break;
-                case '-':
-                    result = prev - curr; // subtraction
-                    break;
-                case '*':
-                    result = prev * curr; // multiplication
-                    break;
-                case '/':
-                    result = curr !== 0 ? prev / curr : 0; // handle division by zero
-                    break;
-                default:
-                    result = 0; // default case
-            }
-
-            this.currentInput = result.toString(); // convert result to string
-            this.previousInput = ''; // reset previous input after calculation
-            this.operator = ''; // reset operator
-            this.isOperatorPressed = false; // reset operator pressed flag
-            this.isDecimalPressed = false; // reset decimal flag
-            this.updateDisplay(); // show result
-        }
-    }
-
-    private handleToggleSign() {
-        if (!this.isOff && this.currentInput) {
-            // toggle the sign of the current input
-            if (this.currentInput.startsWith('-')) {
-                this.currentInput = this.currentInput.substring(1); // remove the '-' sign
-            } else {
-                this.currentInput = '-' + this.currentInput; // add the '-' sign
-            }
-            this.updateDisplay(); // update the display
-        }
-    }
-
-    private updateDisplay() {
-        // update display to show both previous input and current input
-        this.display.textContent = `${this.previousInput}${this.operator ? ' ' + this.operator + ' ' : ''}${this.currentInput}`;
-    }
-
-    private updateDisplayColor() {
-        // change display color based on whether the calculator is off or on
-        if (this.isOff) {
-            this.display.style.backgroundColor = 'black'; // set background to black
-            this.display.style.color = 'white'; // set text color to white
+function handleToggleSign() {
+    if (!isOff && currentInput) {
+        // toggle the sign of the current input
+        if (currentInput.startsWith('-')) {
+            currentInput = currentInput.substring(1); // remove the '-' sign
         } else {
-            this.display.style.backgroundColor = 'white'; // set background to white
-            this.display.style.color = 'black'; // set text color to black
+            currentInput = '-' + currentInput; // add the '-' sign
         }
+        
+        // If current input becomes empty or is just a negative sign, set it to empty
+        if (currentInput === '-') {
+            currentInput = ''; // clear input
+        }
+        
+        updateDisplay(); // update the display
     }
-    }
+}
 
-const calculator = new Calculator();
+function updateDisplay() {
+    // update display to show both previous input and current input
+    display.textContent = `${previousInput}${operator ? ' ' + operator + ' ' : ''}${currentInput}`;
+}
+
+function updateDisplayColor() {
+    // change display color based on whether the calculator is off or on
+    if (isOff) {
+        display.style.backgroundColor = 'black'; // set background to black
+        display.style.color = 'white'; // set text color to white
+    } else {
+        display.style.backgroundColor = 'white'; // set background to white
+        display.style.color = 'black'; // set text color to black
+    }
+}
+
+// initialize event listeners
+initEventListeners();
+updateDisplay(); // update the display initially
+updateDisplayColor(); // set initial display color based on the state
